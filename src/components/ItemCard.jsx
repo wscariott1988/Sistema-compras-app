@@ -20,6 +20,9 @@ export default function ItemCard({ item, onToggle }) {
   const precos = getPrecosOrdenados(item);
   const menor = menorPrecoItem(item);
   const melhor = melhorMercado(item);
+  const marcaPreferida = [null, undefined, '', 'Genérica', 'Qualquer'].includes(item.marcaPreferida)
+    ? null
+    : item.marcaPreferida;
 
   return (
     <article
@@ -43,13 +46,21 @@ export default function ItemCard({ item, onToggle }) {
               <div className="w-6 h-6 rounded-full bg-surface-container" />
             )}
           </button>
-          <h3
-            className={`font-semibold text-[14px] truncate leading-tight ${
-              checked ? 'text-on-surface' : 'line-through text-outline'
-            }`}
-          >
-            {item.categoria}
-          </h3>
+          <div className="flex flex-col min-w-0 flex-1">
+            <h3
+              className={`font-semibold text-[14px] truncate leading-tight ${
+                checked ? 'text-on-surface' : 'line-through text-outline'
+              }`}
+            >
+              {item.categoria}
+            </h3>
+            {marcaPreferida && (
+              <span className="inline-flex items-center gap-0.5 self-start mt-0.5 px-1.5 py-px rounded-full text-[10px] leading-tight bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                <span aria-hidden="true" className="text-[9px]">⭐</span>
+                {marcaPreferida}
+              </span>
+            )}
+          </div>
         </div>
         {melhor && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-container/30 text-on-secondary-fixed-variant text-label-sm font-bold flex-shrink-0">
