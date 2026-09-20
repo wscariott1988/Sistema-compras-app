@@ -1,7 +1,42 @@
+export function getPrecoValor(value) {
+  if (value && typeof value === 'object') {
+    const raw = value.preco ?? value.valor ?? value.price;
+    return raw != null ? Number(raw) || 0 : 0;
+  }
+  return Number(value) || 0;
+}
+
 export function getPrecosValidos(item) {
   return Object.values(item.precos || {})
-    .map((p) => Number(p) || 0)
+    .map(getPrecoValor)
     .filter((p) => p > 0);
+}
+
+export function getPrecosOrdenados(item) {
+  return Object.entries(item.precos || {}).sort((a, b) => {
+    const pa = getPrecoValor(a[1]);
+    const pb = getPrecoValor(b[1]);
+    const va = pa > 0;
+    const vb = pb > 0;
+    if (va && !vb) return -1;
+    if (!va && vb) return 1;
+    if (va && vb) return pa - pb;
+    return 0;
+  });
+}
+
+export function getMicroLabel(value) {
+  if (!value || typeof value !== 'object') return '';
+  const embalagem = value.embalagem ?? value.packaging ?? value.tamanho ?? value.tamanhoEmbalagem;
+  if (embalagem != null && String(embalagem).trim() !== '') {
+    return String(embalagem).trim();
+  }
+  const unidades = value.unidade ?? value.unidades ?? value.quantidade ?? value.qtd ?? value.fracionado;
+  if (unidades != null && String(unidades).trim() !== '') {
+    const s = String(unidades).trim();
+    return /\d/.test(s) ? `${s} un` : s;
+  }
+  return '';
 }
 
 export function menorPrecoItem(item) {

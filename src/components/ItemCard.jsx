@@ -1,17 +1,23 @@
 import { Check, Tag, History } from 'lucide-react';
-import { menorPrecoItem, formatBRL } from '../utils/format';
+import {
+  getMicroLabel,
+  getPrecoValor,
+  getPrecosOrdenados,
+  menorPrecoItem,
+  formatBRL,
+} from '../utils/format';
 
 function melhorMercado(item) {
   const menor = menorPrecoItem(item);
   if (menor <= 0) return null;
-  const precos = Object.entries(item.precos || {});
-  const found = precos.find(([, p]) => Number(p) > 0 && Number(p) === menor);
+  const precos = getPrecosOrdenados(item);
+  const found = precos.find(([, p]) => getPrecoValor(p) === menor);
   return found ? found[0] : null;
 }
 
 export default function ItemCard({ item, onToggle }) {
   const checked = Boolean(item.comprar);
-  const precos = Object.entries(item.precos || {});
+  const precos = getPrecosOrdenados(item);
   const menor = menorPrecoItem(item);
   const melhor = melhorMercado(item);
 
@@ -53,32 +59,45 @@ export default function ItemCard({ item, onToggle }) {
         )}
       </div>
 
-      <div className="flex items-center gap-1.5 text-[12px] bg-surface-container-low px-2 py-1 rounded overflow-x-auto no-scrollbar tnum">
+      <div className="flex items-stretch gap-2 bg-surface-container-low px-2 py-1 rounded overflow-x-auto no-scrollbar tnum">
         {precos.length === 0 ? (
-          <span className="text-outline whitespace-nowrap">Sem cotações</span>
+          <span className="text-outline whitespace-nowrap self-center">Sem cotações</span>
         ) : (
           precos.map(([mercado, preco], idx) => {
-            const value = Number(preco) || 0;
+            const value = getPrecoValor(preco);
+            const microLabel = getMicroLabel(preco);
             const isBest = value > 0 && value === menor;
             return (
-              <span key={mercado} className="flex items-center gap-1 whitespace-nowrap">
-                <span className="text-on-surface-variant">{mercado}</span>
-                {value > 0 ? (
-                  <span
-                    className={
-                      isBest
-                        ? 'font-bold text-on-secondary-fixed bg-secondary-container/50 px-1 rounded'
-                        : 'font-medium text-on-surface'
-                    }
-                  >
-                    {formatBRL(value)}
-                  </span>
-                ) : (
-                  <span className="text-outline">—</span>
-                )}
-                {idx < precos.length - 1 && (
-                  <span className="text-outline text-[10px]">•</span>
-                )}
+              <span
+                key={mercado}
+                className="flex flex-col items-center justify-center gap-0.5 whitespace-nowrap"
+              >
+                <span className="flex items-center gap-1">
+                  <span className="text-on-surface-variant">{mercado}</span>
+                  {value > 0 ? (
+                    <span
+                      className={
+                        isBest
+                          ? 'font-bold text-on-secondary-fixed bg-secondary-container/50 px-1 rounded'
+                          : 'font-medium text-on-surface'
+                      }
+                    >
+                      {formatBRL(value)}
+                    </span>
+                  ) : (
+                    <span className="text-outline">—</span>
+                  )}
+                  {idx < precos.length - 1 && (
+                    <span className="text-outline text-[10px]">•</span>
+                  )}
+                </span>
+                <span
+                  className={`text-[10px] leading-none ${
+                    microLabel ? 'text-outline' : 'text-transparent select-none'
+                  }`}
+                >
+                  {microLabel || '\u00A0'}
+                </span>
               </span>
             );
           })

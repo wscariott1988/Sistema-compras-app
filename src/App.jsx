@@ -7,6 +7,26 @@ import Toast from './components/Toast';
 
 const BiparNota = lazy(() => import('./components/BiparNota'));
 
+const CACHE_KEY = 'SMART_MARKET_CACHE';
+
+function readCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed && Array.isArray(parsed.itens) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(data) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+  } catch {
+    return;
+  }
+}
+
 function FallbackScreen() {
   return (
     <div className="min-h-dvh bg-surface flex items-center justify-center">
@@ -33,14 +53,18 @@ export default function App() {
 
   const loadData = useCallback(
     async (opts = {}) => {
-      if (!opts.silent) setLoading(true);
+      const cached = opts.hasCache;
+      if (!opts.silent && !cached) setLoading(true);
       setSyncing(true);
       try {
         const d = await api.fetchData();
         setData(d);
+        writeCache(d);
         return d;
       } catch {
-        showToast('Falha ao consultar a API. Verifique a conexão.', 'error');
+        if (!cached) {
+          showToast('Falha ao consultar a API. Verifique a conexão.', 'error');
+        }
         return null;
       } finally {
         setLoading(false);
@@ -51,7 +75,14 @@ export default function App() {
   );
 
   useEffect(() => {
-    loadData({ silent: false });
+    const cached = readCache();
+    if (cached) {
+      setData(cached);
+      setLoading(false);
+      loadData({ silent: true, hasCache: true });
+    } else {
+      loadData({ silent: false, hasCache: false });
+    }
   }, [loadData]);
 
   const handleSync = useCallback(async () => {

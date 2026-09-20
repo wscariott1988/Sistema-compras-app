@@ -1,5 +1,5 @@
 import { Trophy, TrendingDown, Store, RefreshCw } from 'lucide-react';
-import { formatarNomeMercado, formatBRL } from '../utils/format';
+import { getPrecoValor, formatarNomeMercado, formatBRL } from '../utils/format';
 
 export default function ChampionHeader({ data, syncing, onSync }) {
   const itens = data.itens || [];
@@ -10,7 +10,7 @@ export default function ChampionHeader({ data, syncing, onSync }) {
   let totalMaisCaro = 0;
   selecionados.forEach((item) => {
     const precosValidos = Object.values(item.precos || {})
-      .map((p) => Number(p) || 0)
+      .map(getPrecoValor)
       .filter((p) => p > 0);
     if (precosValidos.length > 0) {
       totalCampeao += Math.min(...precosValidos);
