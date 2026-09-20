@@ -1,35 +1,20 @@
 import { Trophy, TrendingDown, Store, RefreshCw } from 'lucide-react';
-import { MARKET_KEYS, campeaoKey, formatBRL } from '../utils/format';
-
-function resolveMarket(campeao) {
-  const norm = campeaoKey(campeao);
-  if (!norm) return null;
-  const exact = MARKET_KEYS.find((m) => m.key === norm);
-  if (exact) return exact;
-  const contained = MARKET_KEYS.find((m) => norm.includes(m.key));
-  if (contained) return contained;
-  return MARKET_KEYS.find((m) => m.key.includes(norm)) || null;
-}
+import { MARKET_KEYS, formatarNomeMercado, formatBRL } from '../utils/format';
 
 export default function ChampionHeader({ data, syncing, onSync }) {
   const itens = data.itens || [];
-  const market = resolveMarket(data.campeao);
+  const nomeCampeao = formatarNomeMercado(data.campeao) || '—';
+  const selecionados = itens.filter((i) => i.comprar);
 
   let totalCampeao = 0;
   let totalMaisCaro = 0;
-  let totalMinimo = 0;
-  itens.forEach((item) => {
-    if (market) {
-      const jacote = Number(item[market.key]);
-      if (Number.isFinite(jacote)) totalCampeao += jacote;
-    }
+  selecionados.forEach((item) => {
     const prices = MARKET_KEYS.map((m) => Number(item[m.key])).filter(Number.isFinite);
     if (prices.length) {
+      totalCampeao += Math.min(...prices);
       totalMaisCaro += Math.max(...prices);
-      totalMinimo += Math.min(...prices);
     }
   });
-  if (!market) totalCampeao = totalMinimo;
 
   const economia = totalMaisCaro - totalCampeao;
   const resumo =
@@ -62,7 +47,7 @@ export default function ChampionHeader({ data, syncing, onSync }) {
         <div className="flex items-end justify-between gap-space-sm mt-0.5">
           <div className="min-w-0">
             <p className="text-label-md text-on-primary/80 font-medium">Cesta Completa</p>
-            <h2 className="text-headline-lg-mobile tracking-tight truncate">{data.campeao || '—'}</h2>
+            <h2 className="text-headline-lg-mobile tracking-tight truncate">{nomeCampeao}</h2>
           </div>
           <div className="text-right shrink-0">
             <span className="block text-price-hero leading-tight tnum">{formatBRL(totalCampeao)}</span>

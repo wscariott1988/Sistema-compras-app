@@ -1,9 +1,10 @@
 import { Check, Tag, History } from 'lucide-react';
-import { MARKET_KEYS, normalize, formatBRL } from '../utils/format';
+import { MARKET_KEYS, normalize, formatarNomeMercado, formatBRL } from '../utils/format';
 
 function bestMarketKey(item) {
+  const mercadoMaisBarato = formatarNomeMercado(item.mercadoMaisBarato);
   const fromApi = MARKET_KEYS.find(
-    (m) => normalize(m.label) === normalize(item.mercadoMaisBarato || '')
+    (m) => normalize(m.label) === normalize(mercadoMaisBarato)
   );
   if (fromApi) return fromApi.key;
   let best = null;

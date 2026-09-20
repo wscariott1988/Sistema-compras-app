@@ -1,10 +1,18 @@
 import { API_URL } from '../config';
+import { formatarNomeMercado } from '../utils/format';
 
 function normalizeData(json = {}) {
+  const itens = Array.isArray(json.itens)
+    ? json.itens.map((item) =>
+        item.mercadoMaisBarato
+          ? { ...item, mercadoMaisBarato: formatarNomeMercado(item.mercadoMaisBarato) }
+          : item
+      )
+    : [];
   return {
-    campeao: json.campeao || '',
+    campeao: formatarNomeMercado(json.campeao),
     resumoCustos: json.resumoCustos || '',
-    itens: Array.isArray(json.itens) ? json.itens : [],
+    itens,
     fila: Array.isArray(json.fila) ? json.fila : [],
   };
 }

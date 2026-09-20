@@ -17,6 +17,11 @@ export function campeaoKey(name = '') {
   return normalize(name).replace(/\s+/g, '');
 }
 
+export function formatarNomeMercado(nome) {
+  if (!nome) return '';
+  return String(nome).replace(/^Embalagem\s+/i, '').trim();
+}
+
 export function formatBRL(value) {
   const num = Number(value);
   if (!Number.isFinite(num)) return '—';
