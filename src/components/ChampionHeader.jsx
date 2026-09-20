@@ -1,5 +1,5 @@
 import { Trophy, TrendingDown, Store, RefreshCw } from 'lucide-react';
-import { MARKET_KEYS, formatarNomeMercado, formatBRL } from '../utils/format';
+import { formatarNomeMercado, formatBRL } from '../utils/format';
 
 export default function ChampionHeader({ data, syncing, onSync }) {
   const itens = data.itens || [];
@@ -9,13 +9,20 @@ export default function ChampionHeader({ data, syncing, onSync }) {
   let totalCampeao = 0;
   let totalMaisCaro = 0;
   selecionados.forEach((item) => {
-    const prices = MARKET_KEYS.map((m) => Number(item[m.key])).filter(Number.isFinite);
-    if (prices.length) {
-      totalCampeao += Math.min(...prices);
-      totalMaisCaro += Math.max(...prices);
+    const precosValidos = Object.values(item.precos || {})
+      .map((p) => Number(p) || 0)
+      .filter((p) => p > 0);
+    if (precosValidos.length > 0) {
+      totalCampeao += Math.min(...precosValidos);
+      totalMaisCaro += Math.max(...precosValidos);
     }
   });
 
+  const mercados = [
+    ...new Set(
+      itens.flatMap((item) => Object.keys(item.precos || {}))
+    ),
+  ];
   const economia = totalMaisCaro - totalCampeao;
   const resumo =
     data.resumoCustos ||
@@ -62,7 +69,11 @@ export default function ChampionHeader({ data, syncing, onSync }) {
           </div>
           <div className="flex items-center gap-1.5 text-on-primary/85 min-w-0">
             <Store className="w-4 h-4 shrink-0" />
-            <span className="text-body-sm">4 redes: Rissul, Macromix, Fort, Atacadão</span>
+            <span className="text-body-sm">
+              {mercados.length > 0
+                ? `${mercados.length} ${mercados.length === 1 ? 'rede' : 'redes'}: ${mercados.join(', ')}`
+                : 'Nenhuma cotação disponível'}
+            </span>
           </div>
         </div>
       </div>

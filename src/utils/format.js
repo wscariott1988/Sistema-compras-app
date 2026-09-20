@@ -1,9 +1,13 @@
-export const MARKET_KEYS = [
-  { key: 'rissul', label: 'Rissul' },
-  { key: 'macromix', label: 'Macromix' },
-  { key: 'fort', label: 'Fort' },
-  { key: 'atacadao', label: 'Atacadão' },
-];
+export function getPrecosValidos(item) {
+  return Object.values(item.precos || {})
+    .map((p) => Number(p) || 0)
+    .filter((p) => p > 0);
+}
+
+export function menorPrecoItem(item) {
+  const precos = getPrecosValidos(item);
+  return precos.length > 0 ? Math.min(...precos) : 0;
+}
 
 export function normalize(value = '') {
   return String(value)

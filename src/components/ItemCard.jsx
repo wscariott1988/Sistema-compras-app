@@ -1,28 +1,19 @@
 import { Check, Tag, History } from 'lucide-react';
-import { MARKET_KEYS, normalize, formatarNomeMercado, formatBRL } from '../utils/format';
+import { menorPrecoItem, formatBRL } from '../utils/format';
 
-function bestMarketKey(item) {
-  const mercadoMaisBarato = formatarNomeMercado(item.mercadoMaisBarato);
-  const fromApi = MARKET_KEYS.find(
-    (m) => normalize(m.label) === normalize(mercadoMaisBarato)
-  );
-  if (fromApi) return fromApi.key;
-  let best = null;
-  let bestPrice = Infinity;
-  MARKET_KEYS.forEach((m) => {
-    const price = Number(item[m.key]);
-    if (Number.isFinite(price) && price < bestPrice) {
-      bestPrice = price;
-      best = m.key;
-    }
-  });
-  return best;
+function melhorMercado(item) {
+  const menor = menorPrecoItem(item);
+  if (menor <= 0) return null;
+  const precos = Object.entries(item.precos || {});
+  const found = precos.find(([, p]) => Number(p) > 0 && Number(p) === menor);
+  return found ? found[0] : null;
 }
 
 export default function ItemCard({ item, onToggle }) {
   const checked = Boolean(item.comprar);
-  const bestKey = bestMarketKey(item);
-  const bestLabel = MARKET_KEYS.find((m) => m.key === bestKey)?.label;
+  const precos = Object.entries(item.precos || {});
+  const menor = menorPrecoItem(item);
+  const melhor = melhorMercado(item);
 
   return (
     <article
@@ -54,40 +45,44 @@ export default function ItemCard({ item, onToggle }) {
             {item.categoria}
           </h3>
         </div>
-        {bestLabel && (
+        {melhor && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-container/30 text-on-secondary-fixed-variant text-label-sm font-bold flex-shrink-0">
             <Tag className="w-3 h-3" />
-            {bestLabel}
+            {melhor}
           </span>
         )}
       </div>
 
       <div className="flex items-center gap-1.5 text-[12px] bg-surface-container-low px-2 py-1 rounded overflow-x-auto no-scrollbar tnum">
-        {MARKET_KEYS.map((m) => {
-          const price = Number(item[m.key]);
-          const isBest = m.key === bestKey;
-          return (
-            <span key={m.key} className="flex items-center gap-1 whitespace-nowrap">
-              <span className={isBest ? 'text-on-surface-variant' : 'text-on-surface-variant'}>
-                {m.label}
+        {precos.length === 0 ? (
+          <span className="text-outline whitespace-nowrap">Sem cotações</span>
+        ) : (
+          precos.map(([mercado, preco], idx) => {
+            const value = Number(preco) || 0;
+            const isBest = value > 0 && value === menor;
+            return (
+              <span key={mercado} className="flex items-center gap-1 whitespace-nowrap">
+                <span className="text-on-surface-variant">{mercado}</span>
+                {value > 0 ? (
+                  <span
+                    className={
+                      isBest
+                        ? 'font-bold text-on-secondary-fixed bg-secondary-container/50 px-1 rounded'
+                        : 'font-medium text-on-surface'
+                    }
+                  >
+                    {formatBRL(value)}
+                  </span>
+                ) : (
+                  <span className="text-outline">—</span>
+                )}
+                {idx < precos.length - 1 && (
+                  <span className="text-outline text-[10px]">•</span>
+                )}
               </span>
-              {Number.isFinite(price) ? (
-                <span
-                  className={
-                    isBest
-                      ? 'font-bold text-primary bg-secondary-container/40 px-1 rounded'
-                      : 'font-medium text-on-surface'
-                  }
-                >
-                  {formatBRL(price)}
-                </span>
-              ) : (
-                <span className="text-outline">—</span>
-              )}
-              {m.key !== 'atacadao' && <span className="text-outline text-[10px]">•</span>}
-            </span>
-          );
-        })}
+            );
+          })
+        )}
       </div>
 
       {item.ultimaCompra !== undefined &&
